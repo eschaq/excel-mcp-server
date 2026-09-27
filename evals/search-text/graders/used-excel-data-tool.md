@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-pattern: '"name":"mcp__plugin_dws-excel_excel__(search|apply_filter|get_sheet_data)"'
+pattern: '"name":"mcp__plugin_dws-spreadsheet_excel__(search|apply_filter|get_sheet_data)"'
 target: 'trace'
 ---
 

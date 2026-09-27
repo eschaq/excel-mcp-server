@@ -8,7 +8,7 @@
   },
   "plugins": [
     {
-      "name": "dws-excel",
+      "name": "dws-spreadsheet",
       "source": "./",
       "description": "Read, analyze and edit local Excel and CSV files. No Microsoft Office required."
     }

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
-  "name": "dws-excel",
-  "displayName": "Excel (DWS Build)",
+  "name": "dws-spreadsheet",
+  "displayName": "Spreadsheet (DWS Build)",
   "version": "0.1.0",
   "description": "Read, analyze and edit local Excel and CSV files (.xlsx, .xlsm, .xls, .csv). No Microsoft Office required. Sandboxed to folders you choose, with an optional read-only mode.",
   "author": {
@@ -12,7 +12,14 @@
   "homepage": "https://github.com/eschaq/excel-mcp-server",
   "repository": "https://github.com/eschaq/excel-mcp-server",
   "license": "MIT",
-  "keywords": ["excel", "xlsx", "spreadsheet", "csv", "data-analysis", "mcp"],
+  "keywords": [
+    "excel",
+    "xlsx",
+    "spreadsheet",
+    "csv",
+    "data-analysis",
+    "mcp"
+  ],
   "userConfig": {
     "allowed_dir": {
       "type": "directory",
@@ -37,13 +44,25 @@
   },
   "mcpServers": {
     "excel": {
-      "command": "uvx",
+      "command": "uv",
       "args": [
-        "--from", "${CLAUDE_PLUGIN_ROOT}", "dws-excel-mcp",
-        "--allow-dir", "${user_config.allowed_dir}",
+        "run",
+        "--frozen",
+        "--project",
+        "${CLAUDE_PLUGIN_ROOT}",
+        "python",
+        "-m",
+        "excel_mcp.server",
+        "--allow-dir",
+        "${user_config.allowed_dir}",
         "--read-only=${user_config.read_only}",
-        "--max-file-mb", "${user_config.max_file_mb}"
-      ]
+        "--max-file-mb",
+        "${user_config.max_file_mb}"
+      ],
+      "env": {
+        "PYTHONPATH": "${CLAUDE_PLUGIN_ROOT}/src",
+        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv"
+      }
     }
   }
 }

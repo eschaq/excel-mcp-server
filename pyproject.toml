@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "dws-excel-mcp"
+name = "dws-spreadsheet-mcp"
 version = "0.1.0"
 description = "MCP server that lets Claude read, analyze and edit local Excel and CSV files. No Microsoft Office required."
 readme = "README.md"
@@ -27,7 +27,7 @@ dependencies = [
 dev = ["pytest>=8"]
 
 [project.scripts]
-dws-excel-mcp = "excel_mcp.server:main"
+dws-spreadsheet-mcp = "excel_mcp.server:main"
 
 [project.urls]
 Homepage = "https://github.com/eschaq/excel-mcp-server"
@@ -39,5 +39,8 @@ packages = ["src/excel_mcp"]
 testpaths = ["tests"]
 
 [tool.uv]
-# Rebuild `uvx --from <plugin dir>` whenever the source changes, not only pyproject.toml.
+# The plugin runs the server from source (PYTHONPATH=src) with `uv run --frozen`, so uv only
+# installs the locked dependencies from uv.lock and never builds this project.
+package = false
+# For anyone running `uvx --from <this dir>`: rebuild when the source changes, not only pyproject.toml.
 cache-keys = [{ file = "pyproject.toml" }, { file = "src/**/*.py" }]

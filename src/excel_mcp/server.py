@@ -1,4 +1,4 @@
-"""Entry point: ``python -m excel_mcp.server`` or the ``dws-excel-mcp`` script.
+"""Entry point: ``python -m excel_mcp.server`` or the ``dws-spreadsheet-mcp`` script.
 
 Runs over stdio only; the server opens no network connections.
 
@@ -28,7 +28,7 @@ def _truthy(v: str | None) -> bool:
 
 
 def parse_config(argv: list[str] | None = None) -> tuple[Config, Path]:
-    parser = argparse.ArgumentParser(prog="dws-excel-mcp", description="Excel MCP server (stdio)")
+    parser = argparse.ArgumentParser(prog="dws-spreadsheet-mcp", description="Excel MCP server (stdio)")
     parser.add_argument("--allow-dir", action="append", dest="allow_dirs", metavar="DIR")
     parser.add_argument("--read-only", nargs="?", const="true", default="", metavar="BOOL")
     parser.add_argument("--max-file-mb", type=float)

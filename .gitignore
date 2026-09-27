@@ -6,3 +6,4 @@ dist/
 build/
 ~$*.xlsx
 evals/results/
+evals/security-read-only-mode/readonly-plugin/

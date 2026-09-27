@@ -2,7 +2,7 @@
 
 **by [DWS Build](https://github.com/eschaq)** · [GitHub](https://github.com/eschaq/excel-mcp-server) · [Claude Marketplace listing](#) *(coming soon)*
 
-Let Claude open, analyze and edit spreadsheets on your computer. This [MCP](https://modelcontextprotocol.io) server gives Claude ten tools for working with `.xlsx`, `.xlsm`, `.xls` and `.csv` files: reading sheets, filtering and searching rows, computing summary statistics, inspecting formulas, and writing values, formulas, sheets and new workbooks. Everything runs locally over stdio. It needs no Microsoft Office, opens no network connections, and only touches files inside the folders you allow.
+Let Claude open, analyze and edit spreadsheets on your computer. This [MCP](https://modelcontextprotocol.io) server gives Claude ten tools for working with `.xlsx`, `.xlsm`, `.xls` and `.csv` files: reading sheets, filtering and searching rows, computing summary statistics, inspecting formulas, and writing values, formulas, sheets and new workbooks. Everything runs locally over stdio. It needs no Microsoft Office, and it only touches files inside the folders you allow. The server itself makes no network connections; the only downloads are the one-time install described in [What gets downloaded](#what-gets-downloaded).
 
 ## Screenshots
 
@@ -24,7 +24,7 @@ Let Claude open, analyze and edit spreadsheets on your computer. This [MCP](http
 
 ### Requirements
 
-- **[uv](https://docs.astral.sh/uv/getting-started/installation/)**. The plugin starts its server with `uvx`, which fetches Python and the dependencies on first launch, so you don't install anything else yourself.
+- **[uv](https://docs.astral.sh/uv/getting-started/installation/)**. The plugin starts its server with `uv run --frozen`, which installs the exact dependency versions in this repository's `uv.lock` on first launch (see [What gets downloaded](#what-gets-downloaded)), so you don't install anything else yourself.
 
   ```bash
   # macOS / Linux
@@ -36,7 +36,7 @@ Let Claude open, analyze and edit spreadsheets on your computer. This [MCP](http
   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
   ```
 
-  Open a new terminal afterwards and check that `uvx --version` works.
+  Open a new terminal afterwards and check that `uv --version` works.
 
 ### Install
 
@@ -44,21 +44,21 @@ This repository is its own plugin marketplace. In your shell:
 
 ```bash
 claude plugin marketplace add eschaq/excel-mcp-server
-claude plugin install dws-excel@dws-build
+claude plugin install dws-spreadsheet@dws-build
 ```
 
 Or inside a Claude Code session:
 
 ```text
 /plugin marketplace add eschaq/excel-mcp-server
-/plugin install dws-excel@dws-build
+/plugin install dws-spreadsheet@dws-build
 ```
 
-Start a new session (or run `/reload-plugins`) and ask Claude about a spreadsheet. The first launch takes a few seconds while `uvx` builds the server; after that it starts quickly.
+Start a new session (or run `/reload-plugins`) and ask Claude about a spreadsheet. The first launch takes a few seconds while uv installs the dependencies; after that it starts quickly.
 
 ### Settings
 
-Claude Code asks for these when you enable the plugin, and you can change them later in `/config`:
+Installing doesn't prompt for these. Any option you haven't set uses its default, shown below. To change them, run `/plugin configure dws-spreadsheet@dws-build` in a Claude Code session:
 
 | Setting | Default | Effect |
 |---|---|---|
@@ -66,11 +66,20 @@ Claude Code asks for these when you enable the plugin, and you can change them l
 | Read-only mode | off | Hides the write tools, so Claude can read and analyze files but never change them |
 | Max file size (MB) | 50 | Larger files are refused |
 
+### What gets downloaded
+
+The server never connects to the network. Installing and starting it downloads the following, once:
+
+- **Python packages from PyPI** (`https://pypi.org/simple`, with files served from `files.pythonhosted.org`): the 30 packages pinned, with their hashes, in [`uv.lock`](uv.lock). These are `mcp` 2.2.0, `openpyxl` 3.1.5 and `xlrd` 2.0.2, plus their dependencies (for example `pydantic`, `anyio`, `starlette` and `et-xmlfile`; `pywin32` on Windows only). `--frozen` makes uv install exactly those versions and never re-resolve them, and uv checks each file against its hash in the lockfile.
+- **Python itself, only if needed.** If you don't have Python 3.11 or newer, uv downloads a standalone CPython build from GitHub ([astral-sh/python-build-standalone](https://github.com/astral-sh/python-build-standalone)).
+
+uv keeps the downloads in its cache (`~/.cache/uv` on macOS/Linux, `%LOCALAPPDATA%\uv\cache` on Windows) and installs them into a virtual environment in the plugin's data folder (`~/.claude/plugins/data/`). The plugin's own code runs straight from the plugin folder and isn't downloaded or built. Later launches reuse the installed environment and download nothing. Installing uv itself is a separate step you run yourself (see [Requirements](#requirements)).
+
 ### Update or remove
 
 ```bash
-claude plugin update dws-excel@dws-build
-claude plugin uninstall dws-excel@dws-build
+claude plugin update dws-spreadsheet@dws-build
+claude plugin uninstall dws-spreadsheet@dws-build
 ```
 
 ## Install for Claude Desktop
@@ -106,7 +115,7 @@ Open **Settings → Developer → Edit Config** in Claude Desktop and add:
 
 On macOS/Linux use the venv's `bin/python` instead. Point `command` at the Python interpreter where the package is installed, since a bare `"python"` may resolve to a different interpreter (or, on Windows, to the Microsoft Store stub). Restart Claude Desktop after saving.
 
-If you have uv, you can skip the venv: use `"command": "uvx"` with `"args": ["--from", "C:\\path\\to\\excel-mcp-server", "dws-excel-mcp", "--allow-dir", "C:\\Users\\you\\Documents"]`.
+If you have uv, you can skip the venv: use `"command": "uv"` with `"args": ["run", "--frozen", "--project", "C:\\path\\to\\excel-mcp-server", "python", "-m", "excel_mcp.server", "--allow-dir", "C:\\Users\\you\\Documents"]` and `"env": {"PYTHONPATH": "C:\\path\\to\\excel-mcp-server\\src"}`.
 
 ### Server options
 
@@ -168,7 +177,7 @@ Every data row comes back with a `_row` key holding its Excel row number, so Cla
 - **File types.** Only `.xlsx`, `.xlsm`, `.xls` and `.csv` can be opened; writes are limited to `.xlsx`/`.xlsm`.
 - **Size limit.** Files over `--max-file-mb` are refused before they are loaded.
 - **Read-only mode.** `--read-only` removes the write tools from the server entirely, so Claude never sees them.
-- **Local only.** stdio transport, no network calls.
+- **Local only.** stdio transport, and the server makes no network calls. The one-time dependency install is listed under [What gets downloaded](#what-gets-downloaded).
 - **Audit log.** Each operation is logged with its resolved path to stderr and to the log file.
 - **Safe saves.** Writes go to a temp file that then replaces the original, so an interrupted save can't leave a half-written workbook.
 
@@ -197,14 +206,15 @@ Layout: `excel_ops.py` holds all spreadsheet logic with no MCP dependency, `tool
 `evals/` holds 20 [`claude plugin eval`](https://code.claude.com/docs/en/plugin-evals) cases: every tool, edge cases (an empty sheet, a missing file, text/number/date writes), and security checks (a path outside the allowed folder, a file over 50 MB, read-only mode, a non-spreadsheet file). They run real Claude sessions against the real server, so they cost money: about $9 for the full suite at 3 runs per case. They need `uv` and bash on your PATH.
 
 ```bash
+bash evals/prepare-readonly-plugin.sh    # once: generates the read-only test plugin (gitignored)
 claude plugin eval . --scaffold --allow-real-servers \
-  --allow-tools "mcp__plugin_dws-excel_excel__*" "mcp__plugin_dws-excel-readonly_excel__*" \
+  --allow-tools "mcp__plugin_dws-spreadsheet_excel__*" "mcp__plugin_dws-spreadsheet-readonly_excel__*" \
   --ablation none --judge-model sonnet --max-cost-usd 15
 ```
 
 - `--scaffold` runs each case's `setup.sh`, which copies `evals/fixtures/eval_workbook.xlsx` (or generates a test file) into the run's workspace.
 - `--allow-real-servers` starts the real server instead of mocks.
-- The read-only case loads a test copy of the plugin (`evals/security-read-only-mode/readonly-plugin/`) whose server runs with `--read-only`.
+- The read-only case loads a test copy of the plugin whose server runs with `--read-only`. `evals/prepare-readonly-plugin.sh` generates it in `evals/security-read-only-mode/readonly-plugin/`, which is gitignored so the repository holds only one `plugin.json`.
 
 ## License
 

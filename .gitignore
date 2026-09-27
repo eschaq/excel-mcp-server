@@ -4,7 +4,6 @@ __pycache__/
 .pytest_cache/
 dist/
 build/
-~$*.xlsx
 evals/results/
 evals/security-read-only-mode/readonly-plugin/
 evals/fixtures/eval_workbook.xlsx

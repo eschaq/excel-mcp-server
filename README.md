@@ -24,7 +24,7 @@ Let Claude open, analyze and edit spreadsheets on your computer. This [MCP](http
 
 ### Requirements
 
-- **[uv](https://docs.astral.sh/uv/)**. The plugin starts its server with `uv run --frozen`, which installs the exact dependency versions in this repository's `uv.lock` on first launch (see [What gets downloaded](#what-gets-downloaded)), so you don't install anything else yourself. Install uv with any method from [uv's installation guide](https://docs.astral.sh/uv/getting-started/installation/), such as Homebrew, WinGet or `pipx`. Then open a new terminal and check that `uv --version` works.
+- **[uv](https://docs.astral.sh/uv/)**. The plugin starts its server through uv, in frozen mode: on first launch uv installs exactly the dependency versions pinned in this repository's `uv.lock` (see [What gets downloaded](#what-gets-downloaded)), so you don't install anything else yourself. To install uv, follow [uv's installation guide](https://docs.astral.sh/uv/getting-started/installation/), then open a new terminal and check that `uv --version` works.
 
 ### Install
 
@@ -102,8 +102,6 @@ Open **Settings → Developer → Edit Config** in Claude Desktop and add:
 ```
 
 On macOS/Linux use the venv's `bin/python` instead. Point `command` at the Python interpreter where the package is installed, since a bare `"python"` may resolve to a different interpreter (or, on Windows, to the Microsoft Store stub). Restart Claude Desktop after saving.
-
-If you have uv, you can skip the venv: use `"command": "uv"` with `"args": ["run", "--frozen", "--project", "C:\\path\\to\\excel-mcp-server", "C:\\path\\to\\excel-mcp-server\\run_server.py", "--allow-dir", "C:\\Users\\you\\Documents"]`.
 
 ### Server options
 
@@ -195,7 +193,7 @@ Layout: `excel_ops.py` holds all spreadsheet logic with no MCP dependency, `tool
 `evals/` holds 20 [`claude plugin eval`](https://code.claude.com/docs/en/plugin-evals) cases: every tool, edge cases (an empty sheet, a missing file, text/number/date writes), and security checks (a path outside the allowed folder, a file over 50 MB, read-only mode, a non-spreadsheet file). They run real Claude sessions against the real server, so they cost money: about $9 for the full suite at 3 runs per case. They need `uv` and bash on your PATH.
 
 ```bash
-bash evals/prepare.sh    # once: generates the eval workbook and the read-only test plugin (gitignored)
+bash evals/prepare.sh    # once, with the dev environment active: generates the eval workbook and the read-only test plugin (gitignored)
 claude plugin eval . --scaffold --allow-real-servers \
   --allow-tools "mcp__plugin_dws-spreadsheet_excel__*" "mcp__plugin_dws-spreadsheet-readonly_excel__*" \
   --ablation none --judge-model sonnet --max-cost-usd 15

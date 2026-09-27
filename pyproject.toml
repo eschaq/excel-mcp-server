@@ -39,8 +39,6 @@ packages = ["src/excel_mcp"]
 testpaths = ["tests"]
 
 [tool.uv]
-# The plugin runs the server from source (PYTHONPATH=src) with `uv run --frozen`, so uv only
-# installs the locked dependencies from uv.lock and never builds this project.
+# The plugin starts run_server.py through uv in frozen mode: uv installs only the dependencies
+# locked in uv.lock and never builds or installs this project itself.
 package = false
-# For anyone running `uvx --from <this dir>`: rebuild when the source changes, not only pyproject.toml.
-cache-keys = [{ file = "pyproject.toml" }, { file = "src/**/*.py" }]

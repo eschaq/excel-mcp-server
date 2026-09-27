@@ -1,7 +1,7 @@
 """Plugin entry point: start the MCP server from this plugin folder's own source.
 
-The plugin runs this file with `uv run --frozen`, which provides the dependencies pinned in
-uv.lock. The server's code is in src/excel_mcp/ next to this file and is imported from there,
+The plugin starts this file through uv in frozen mode, which provides exactly the dependencies
+pinned in uv.lock. The server's code is in src/excel_mcp/ next to this file and is imported from there,
 so nothing outside the plugin folder is executed.
 """
 

@@ -530,7 +530,7 @@ class ExcelOps:
         if p.suffix.lower() != ".xlsx":
             raise ExcelOpsError("create_workbook only creates .xlsx files")
         if p.exists() and not overwrite:
-            raise ExcelOpsError(f"File already exists: {p} (pass overwrite=true to replace it)")
+            raise ExcelOpsError(f"File already exists: {p}. Set overwrite to true to replace it.")
         self._validate_sheet_name(sheet_name)
         p.parent.mkdir(parents=True, exist_ok=True)
 

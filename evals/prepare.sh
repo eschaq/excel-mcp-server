@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Generate the files the eval suite needs but the repository doesn't commit. Run once before
-# `claude plugin eval` (and again after changing the generators). Needs uv on PATH.
+# `claude plugin eval` (and again after changing the generators), with the project's dev
+# environment active so `python` has openpyxl.
 #
 # 1. evals/fixtures/eval_workbook.xlsx, built by make_eval_workbook.py. It's generated rather than
 #    committed so the plugin ships no binary files.
@@ -8,9 +9,8 @@
 #    started with --read-only. It's generated so the repository holds exactly one plugin.json.
 set -euo pipefail
 evals="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-root="$(dirname "$evals")"
 
-uv run --frozen --project "$root" python "$evals/fixtures/make_eval_workbook.py"
+python "$evals/fixtures/make_eval_workbook.py"
 echo "wrote $evals/fixtures/eval_workbook.xlsx"
 
 dir="$evals/security-read-only-mode/readonly-plugin/.claude-plugin"

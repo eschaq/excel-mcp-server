@@ -36,6 +36,8 @@ READ_EXTENSIONS = {".xlsx", ".xlsm", ".xls", ".csv"}
 WRITE_EXTENSIONS = {".xlsx", ".xlsm"}
 MAX_ROWS_PER_CALL = 5000
 EXCEL_MAX_ROW, EXCEL_MAX_COL = 1_048_576, 16_384
+ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
+ISO_DATETIME = re.compile(r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?")
 INVALID_SHEET_CHARS = re.compile(r"[\[\]:*?/\\]")
 
 FilterOp = Literal[
@@ -154,6 +156,47 @@ def _parse_cell(cell: str) -> tuple[int, int]:
     if not (1 <= row <= EXCEL_MAX_ROW and 1 <= col <= EXCEL_MAX_COL):
         raise ExcelOpsError(f"Cell '{cell}' is outside Excel's grid (max XFD1048576)")
     return row, col
+
+
+def _to_cell_value(v: Any) -> tuple[Any, str | None]:
+    """Convert an incoming JSON value to (cell value, number format), the way Excel treats typing.
+
+    ISO dates ('2026-07-01') and datetimes ('2026-07-01 14:30') become real dates. A leading
+    apostrophe keeps a string as literal text, as in Excel ("'2026-07-01" stays text).
+    """
+    if not isinstance(v, str):
+        return v, None
+    if v.startswith("'"):
+        return v[1:], "@"
+    try:
+        if ISO_DATE.fullmatch(v):
+            return dt.date.fromisoformat(v), "yyyy-mm-dd"
+        if ISO_DATETIME.fullmatch(v):
+            return dt.datetime.fromisoformat(v), "yyyy-mm-dd hh:mm"
+    except ValueError:  # e.g. 2026-02-30: not a real date, keep it as text
+        pass
+    return v, None
+
+
+def _set_cell(ws, row: int, col: int, v: Any):
+    value, fmt = _to_cell_value(v)
+    cell = ws.cell(row=row, column=col)
+    cell.value = value  # ws.cell(value=None) would silently skip clearing the cell
+    if fmt:
+        cell.number_format = fmt
+    return cell
+
+
+def _type_name(v: Any) -> str:
+    if v is None:
+        return "empty"
+    if isinstance(v, str):
+        return "formula" if v.startswith("=") else "text"
+    if isinstance(v, bool):
+        return "boolean"
+    if isinstance(v, (dt.date, dt.datetime)):
+        return "date"
+    return "number"
 
 
 def _ref(row: int, col: int) -> str:
@@ -407,7 +450,8 @@ class ExcelOps:
         wb = self._load_for_write(p)
         ws = wb[self._pick_sheet(wb.sheetnames, sheet)]
         old = ws[cell].value
-        ws[cell] = value
+        row, col = _parse_cell(cell)
+        new = _set_cell(ws, row, col, value).value
         self._save(wb, p)
         log.info("write_cell path=%s sheet=%s cell=%s", p, ws.title, cell)
         return {
@@ -415,8 +459,8 @@ class ExcelOps:
             "sheet": ws.title,
             "cell": cell,
             "old_value": to_json_value(old),
-            "new_value": to_json_value(value),
-            "is_formula": isinstance(value, str) and value.startswith("="),
+            "new_value": to_json_value(new),
+            "type": _type_name(new),
         }
 
     # ---- 4. write_range --------------------------------------------------- #
@@ -437,7 +481,7 @@ class ExcelOps:
             raise ExcelOpsError("values would extend past the edge of the sheet")
         for r, row in enumerate(values):
             for c, v in enumerate(row):
-                ws.cell(row=start_row + r, column=start_col + c, value=v)
+                _set_cell(ws, start_row + r, start_col + c, v)
         self._save(wb, p)
         end = _ref(start_row + len(values) - 1, start_col + width - 1)
         rng = f"{_ref(start_row, start_col)}:{end}"

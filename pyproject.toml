@@ -37,3 +37,7 @@ packages = ["src/excel_mcp"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.uv]
+# Rebuild `uvx --from <plugin dir>` whenever the source changes, not only pyproject.toml.
+cache-keys = [{ file = "pyproject.toml" }, { file = "src/**/*.py" }]

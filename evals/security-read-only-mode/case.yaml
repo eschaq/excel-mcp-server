@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: security-read-only-mode
+description: 'Loads a test copy of the plugin whose server runs with --read-only.'
+plugins: ["readonly-plugin"]
+context:
+  scaffold_script: setup.sh

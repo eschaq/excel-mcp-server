@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "dws-excel",
+  "displayName": "Excel (DWS Build)",
+  "version": "0.1.0",
+  "description": "Read, analyze and edit local Excel and CSV files (.xlsx, .xlsm, .xls, .csv). No Microsoft Office required. Sandboxed to folders you choose, with an optional read-only mode.",
+  "author": {
+    "name": "DWS Build",
+    "email": "datawisdomsolutions@gmail.com",
+    "url": "https://github.com/eschaq"
+  },
+  "homepage": "https://github.com/eschaq/excel-mcp-server",
+  "repository": "https://github.com/eschaq/excel-mcp-server",
+  "license": "MIT",
+  "keywords": ["excel", "xlsx", "spreadsheet", "csv", "data-analysis", "mcp"],
+  "userConfig": {
+    "allowed_dir": {
+      "type": "directory",
+      "title": "Allowed folder",
+      "description": "Claude can only open spreadsheets inside this folder (and its subfolders). Defaults to your home folder.",
+      "default": "~"
+    },
+    "read_only": {
+      "type": "boolean",
+      "title": "Read-only mode",
+      "description": "Hide the write tools so Claude can read and analyze files but never change them.",
+      "default": false
+    },
+    "max_file_mb": {
+      "type": "number",
+      "title": "Max file size (MB)",
+      "description": "Files larger than this are refused, to keep memory use bounded.",
+      "default": 50,
+      "min": 1,
+      "max": 1024
+    }
+  },
+  "mcpServers": {
+    "excel": {
+      "command": "uvx",
+      "args": [
+        "--from", "${CLAUDE_PLUGIN_ROOT}", "dws-excel-mcp",
+        "--allow-dir", "${user_config.allowed_dir}",
+        "--read-only=${user_config.read_only}",
+        "--max-file-mb", "${user_config.max_file_mb}"
+      ]
+    }
+  }
+}

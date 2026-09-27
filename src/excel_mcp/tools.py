@@ -22,7 +22,7 @@ Start with read_spreadsheet to see sheets, sizes and a preview, then use get_she
 apply_filter, search or get_summary_stats. Data rows come back as records with a "_row" key
 holding the Excel row number, so you can write back to the right cell. Writes (write_cell,
 write_range, create_sheet, create_workbook) only work on .xlsx/.xlsm files; a string value
-starting with "=" is stored as a formula. Formula results are not recalculated until the file
+starting with "=" is stored as a formula, and an ISO date string ("2026-07-01") as a real date. Formula results are not recalculated until the file
 is opened in Excel, so newly written formulas read back as empty values: use get_formulas to see them.
 """
 
@@ -108,7 +108,9 @@ def build_server(config: Config) -> MCPServer:
         case_sensitive: bool = False,
         limit: Annotated[int, Field(description="Max matches to return")] = 100,
     ) -> dict:
-        """Find cells whose value matches a text, numeric or regex pattern. Returns cell addresses."""
+        """Find cells whose value matches a text, numeric or regex pattern, across one or all sheets.
+        Returns each match's sheet and cell address. Use this to locate a value instead of reading
+        whole sheets."""
         return ops.search(path, query, sheet, mode, case_sensitive, limit)
 
     @tool(READ)
@@ -119,7 +121,9 @@ def build_server(config: Config) -> MCPServer:
         columns: Columns = None,
     ) -> dict:
         """Summary statistics per column: count, missing, min, max, mean, median, stdev and sum for
-        numeric columns; count, unique and most common value for text columns."""
+        numeric columns; count, unique and most common value for text columns; earliest and latest
+        for date columns. stdev is the sample standard deviation (like Excel's STDEV.S). Blank cells
+        are counted as missing, never as zero."""
         return ops.get_summary_stats(path, sheet, header_row, columns)
 
     @tool(READ)
@@ -146,7 +150,7 @@ def build_server(config: Config) -> MCPServer:
     def write_cell(
         path: Path_,
         cell: Annotated[str, Field(description="Cell address, e.g. 'B3'")],
-        value: Annotated[CellValue, Field(description="Value to write. Strings starting with '=' become formulas; null clears the cell.")],
+        value: Annotated[CellValue, Field(description="Value to write. Strings starting with '=' become formulas; ISO dates like '2026-07-01' become real dates (prefix with ' to keep as text); null clears the cell.")],
         sheet: Sheet = None,
     ) -> dict:
         """Write one value or formula to a cell in an .xlsx/.xlsm file. Returns the previous value."""

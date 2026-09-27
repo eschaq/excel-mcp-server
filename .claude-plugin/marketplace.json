@@ -1,0 +1,16 @@
+{
+  "name": "dws-build",
+  "description": "Claude Code plugins by DWS Build",
+  "owner": {
+    "name": "DWS Build",
+    "email": "datawisdomsolutions@gmail.com",
+    "url": "https://github.com/eschaq"
+  },
+  "plugins": [
+    {
+      "name": "dws-excel",
+      "source": "./",
+      "description": "Read, analyze and edit local Excel and CSV files. No Microsoft Office required."
+    }
+  ]
+}

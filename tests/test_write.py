@@ -134,3 +134,33 @@ def test_mcp_call_and_error_message(workdir):
     ok, bad = _run(go())
     assert not ok.is_error and '"Bob"' in ok.content[0].text
     assert bad.is_error and "Access denied" in bad.content[0].text
+
+
+# ---- value types ------------------------------------------------------------ #
+
+def test_write_cell_types(ops, workdir):
+    import datetime as dt
+
+    assert ops.write_cell("sample.xlsx", "J2", "Notes")["type"] == "text"
+    assert ops.write_cell("sample.xlsx", "J3", 42)["type"] == "number"
+    out = ops.write_cell("sample.xlsx", "J4", "2026-07-01")
+    assert out["type"] == "date" and out["new_value"] == "2026-07-01"
+    assert ops.write_cell("sample.xlsx", "J5", "2026-07-01 14:30")["type"] == "date"
+    assert ops.write_cell("sample.xlsx", "J6", "'2026-07-01")["type"] == "text"
+    assert ops.write_cell("sample.xlsx", "J7", "2026-02-30")["type"] == "text"  # not a real date
+    assert ops.write_cell("sample.xlsx", "J8", "=J3*2")["type"] == "formula"
+
+    ws = openpyxl.load_workbook(workdir / "sample.xlsx")["Sales"]
+    assert ws["J4"].value == dt.datetime(2026, 7, 1) and ws["J4"].number_format == "yyyy-mm-dd"
+    assert ws["J5"].value == dt.datetime(2026, 7, 1, 14, 30)
+    assert ws["J6"].value == "2026-07-01"
+    assert ws["J7"].value == "2026-02-30"
+    assert ops.get_sheet_data("sample.xlsx", columns=["J"], header_row=0)["rows"][3] == {"_row": 4, "J": "2026-07-01"}
+
+
+def test_write_range_converts_dates(ops, workdir):
+    import datetime as dt
+
+    ops.write_range("sample.xlsx", "A20", [["2026-08-15", "text", 3.5]])
+    ws = openpyxl.load_workbook(workdir / "sample.xlsx")["Sales"]
+    assert ws["A20"].value == dt.datetime(2026, 8, 15) and ws["B20"].value == "text"

@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dws-excel-mcp"
+version = "0.1.0"
+description = "MCP server that lets Claude read, analyze and edit local Excel and CSV files. No Microsoft Office required."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+authors = [{ name = "DWS Build", email = "datawisdomsolutions@gmail.com" }]
+keywords = ["mcp", "excel", "xlsx", "spreadsheet", "claude", "openpyxl"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Office/Business :: Financial :: Spreadsheet",
+]
+dependencies = [
+    "mcp>=2.2,<3",
+    "openpyxl>=3.1",
+    "xlrd>=2.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+dws-excel-mcp = "excel_mcp.server:main"
+
+[project.urls]
+Homepage = "https://github.com/eschaq/excel-mcp-server"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/excel_mcp"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

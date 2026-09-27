@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "excel": {
+      "command": "C:\path\to\excel-mcp-server\.venv\Scripts\python.exe",
+      "args": [
+        "-m", "excel_mcp.server",
+        "--allow-dir", "C:\Users\you\Documents",
+        "--allow-dir", "C:\Users\you\Downloads"
+      ]
+    }
+  }
+}

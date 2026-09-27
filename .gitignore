@@ -7,3 +7,6 @@ build/
 ~$*.xlsx
 evals/results/
 evals/security-read-only-mode/readonly-plugin/
+evals/fixtures/eval_workbook.xlsx
+tests/fixtures/*.xlsx
+tests/fixtures/*.xls

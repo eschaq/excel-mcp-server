@@ -24,19 +24,7 @@ Let Claude open, analyze and edit spreadsheets on your computer. This [MCP](http
 
 ### Requirements
 
-- **[uv](https://docs.astral.sh/uv/getting-started/installation/)**. The plugin starts its server with `uv run --frozen`, which installs the exact dependency versions in this repository's `uv.lock` on first launch (see [What gets downloaded](#what-gets-downloaded)), so you don't install anything else yourself.
-
-  ```bash
-  # macOS / Linux
-  curl -LsSf https://astral.sh/uv/install.sh | sh
-  ```
-
-  ```powershell
-  # Windows
-  powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-  ```
-
-  Open a new terminal afterwards and check that `uv --version` works.
+- **[uv](https://docs.astral.sh/uv/)**. The plugin starts its server with `uv run --frozen`, which installs the exact dependency versions in this repository's `uv.lock` on first launch (see [What gets downloaded](#what-gets-downloaded)), so you don't install anything else yourself. Install uv with any method from [uv's installation guide](https://docs.astral.sh/uv/getting-started/installation/), such as Homebrew, WinGet or `pipx`. Then open a new terminal and check that `uv --version` works.
 
 ### Install
 
@@ -119,14 +107,14 @@ If you have uv, you can skip the venv: use `"command": "uv"` with `"args": ["run
 
 ### Server options
 
-| Flag | Environment variable | Default | Effect |
-|---|---|---|---|
-| `--allow-dir DIR` (repeatable) | `EXCEL_MCP_ALLOWED_DIRS` (`;`-separated on Windows, `:` elsewhere) | your home folder | Only files inside these folders can be read or written |
-| `--read-only` | `EXCEL_MCP_READ_ONLY=1` | off | Write tools are removed entirely. Read-only if either the flag or the variable asks for it; neither can switch it off |
-| `--max-file-mb N` | `EXCEL_MCP_MAX_FILE_MB` | `50` | Files larger than this are refused |
-| `--log-file PATH` | `EXCEL_MCP_LOG_FILE` | `~/.excel-mcp/excel-mcp.log` | Audit log of every file operation |
+| Flag | Default | Effect |
+|---|---|---|
+| `--allow-dir DIR` (repeatable) | your home folder | Only files inside these folders can be read or written |
+| `--read-only` | off | Write tools are removed entirely |
+| `--max-file-mb N` | `50` | Files larger than this are refused |
+| `--log-file PATH` | `~/.excel-mcp/excel-mcp.log` | Audit log of every file operation |
 
-Relative paths passed to tools resolve against the first allowed folder.
+Settings come only from these flags; the server reads no environment variables. Relative paths passed to tools resolve against the first allowed folder.
 
 ## Tools
 
@@ -178,7 +166,7 @@ Every data row comes back with a `_row` key holding its Excel row number, so Cla
 - **Size limit.** Files over `--max-file-mb` are refused before they are loaded.
 - **Read-only mode.** `--read-only` removes the write tools from the server entirely, so Claude never sees them.
 - **Local only.** stdio transport, and the server makes no network calls. The one-time dependency install is listed under [What gets downloaded](#what-gets-downloaded).
-- **No credentials.** The plugin needs no API keys, tokens or passwords, and reads none. Its three settings (allowed folder, read-only mode, max file size) are ordinary `userConfig` options, passed to the server as command-line arguments through `${user_config.KEY}`. The server also accepts the optional `EXCEL_MCP_*` environment variables listed under [Server options](#server-options), for running it outside the plugin. They hold only those same non-secret settings plus a log file path, and the plugin never sets them.
+- **No credentials.** The plugin needs no API keys, tokens or passwords, and reads none. It reads no environment variables either: its three settings (allowed folder, read-only mode, max file size) are ordinary `userConfig` options, passed to the server as command-line arguments through `${user_config.KEY}`.
 - **Audit log.** Each operation is logged with its resolved path to stderr and to the log file.
 - **Safe saves.** Writes go to a temp file that then replaces the original, so an interrupted save can't leave a half-written workbook.
 
@@ -195,7 +183,7 @@ Every data row comes back with a `_row` key holding its Excel row number, so Cla
 ```bash
 pip install -e ".[dev]"
 pytest                                  # unit tests plus in-process MCP protocol tests
-python tests/fixtures/make_sample.py    # regenerate test fixtures (the .xls needs: pip install xlwt)
+                                        # (pytest builds its test workbooks each run; none are committed)
 claude plugin validate . --strict       # check the marketplace manifest
 claude plugin validate .claude-plugin/plugin.json --strict   # check the plugin manifest
 ```
@@ -207,7 +195,7 @@ Layout: `excel_ops.py` holds all spreadsheet logic with no MCP dependency, `tool
 `evals/` holds 20 [`claude plugin eval`](https://code.claude.com/docs/en/plugin-evals) cases: every tool, edge cases (an empty sheet, a missing file, text/number/date writes), and security checks (a path outside the allowed folder, a file over 50 MB, read-only mode, a non-spreadsheet file). They run real Claude sessions against the real server, so they cost money: about $9 for the full suite at 3 runs per case. They need `uv` and bash on your PATH.
 
 ```bash
-bash evals/prepare-readonly-plugin.sh    # once: generates the read-only test plugin (gitignored)
+bash evals/prepare.sh    # once: generates the eval workbook and the read-only test plugin (gitignored)
 claude plugin eval . --scaffold --allow-real-servers \
   --allow-tools "mcp__plugin_dws-spreadsheet_excel__*" "mcp__plugin_dws-spreadsheet-readonly_excel__*" \
   --ablation none --judge-model sonnet --max-cost-usd 15
@@ -215,7 +203,8 @@ claude plugin eval . --scaffold --allow-real-servers \
 
 - `--scaffold` runs each case's `setup.sh`, which copies `evals/fixtures/eval_workbook.xlsx` (or generates a test file) into the run's workspace.
 - `--allow-real-servers` starts the real server instead of mocks.
-- The read-only case loads a test copy of the plugin whose server runs with `--read-only`. `evals/prepare-readonly-plugin.sh` generates it in `evals/security-read-only-mode/readonly-plugin/`, which is gitignored so the repository holds only one `plugin.json`.
+- The read-only case loads a test copy of the plugin whose server runs with `--read-only`.
+- `evals/prepare.sh` generates both the eval workbook (from `evals/fixtures/make_eval_workbook.py`) and that test plugin. Both are gitignored, so the repository ships no binary files and holds only one `plugin.json`.
 
 ## License
 

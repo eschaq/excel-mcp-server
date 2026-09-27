@@ -1,4 +1,7 @@
-"""Regenerate tests/fixtures/sample.xlsx: python tests/fixtures/make_sample.py"""
+"""Build the test workbooks. tests/conftest.py calls this at the start of each test run.
+
+Run it directly to write sample.xlsx and sample.xls next to this file for manual testing.
+"""
 
 import datetime as dt
 from pathlib import Path
@@ -35,7 +38,7 @@ def build(path: Path) -> None:
 
 
 def build_xls(path: Path) -> None:
-    """Legacy .xls copy of the Sales sheet. Needs xlwt (pip install xlwt), a test-only tool."""
+    """Legacy .xls copy of the Sales sheet. Needs xlwt, a dev-only dependency."""
     import xlwt
 
     wb = xlwt.Workbook()

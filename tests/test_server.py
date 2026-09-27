@@ -5,26 +5,23 @@ import pytest
 from excel_mcp.server import parse_config
 
 
-@pytest.fixture(autouse=True)
-def clean_env(monkeypatch):
-    for k in ("EXCEL_MCP_ALLOWED_DIRS", "EXCEL_MCP_READ_ONLY", "EXCEL_MCP_MAX_FILE_MB", "EXCEL_MCP_LOG_FILE"):
-        monkeypatch.delenv(k, raising=False)
-
-
-@pytest.mark.parametrize("args, env, expected", [
-    ([], None, False),
-    (["--read-only"], None, True),
-    (["--read-only=true"], None, True),
-    (["--read-only=false"], None, False),
-    (["--read-only=false"], "1", True),   # env can lock it down...
-    ([], "true", True),
-    (["--read-only=true"], "0", True),    # ...but can't unlock it
+@pytest.mark.parametrize("args, expected", [
+    ([], False),
+    (["--read-only"], True),
+    (["--read-only=true"], True),
+    (["--read-only=false"], False),
 ])
-def test_read_only_sources(monkeypatch, args, env, expected):
-    if env is not None:
-        monkeypatch.setenv("EXCEL_MCP_READ_ONLY", env)
+def test_read_only_flag(args, expected):
     config, _ = parse_config(args)
     assert config.read_only is expected
+
+
+def test_environment_variables_are_ignored(monkeypatch):
+    """Settings come only from flags, so nothing in the environment can change them."""
+    monkeypatch.setenv("EXCEL_MCP_READ_ONLY", "1")
+    monkeypatch.setenv("EXCEL_MCP_MAX_FILE_MB", "1")
+    config, _ = parse_config([])
+    assert config.read_only is False and config.max_file_mb == 50
 
 
 def test_allowed_dirs_expand_home(tmp_path):

@@ -2,20 +2,17 @@
 
 Runs over stdio only; the server opens no network connections.
 
-Settings (command-line flags override environment variables):
-  --allow-dir DIR   / EXCEL_MCP_ALLOWED_DIRS  directories files may live in (default: home dir);
-                                             the env var takes several, separated by os.pathsep
-  --read-only[=BOOL] / EXCEL_MCP_READ_ONLY=1  disable and hide all write tools; read-only if
-                                             either source says so (neither can turn it off)
-  --max-file-mb N   / EXCEL_MCP_MAX_FILE_MB   refuse files larger than this (default: 50)
-  --log-file PATH   / EXCEL_MCP_LOG_FILE      operation log (default: ~/.excel-mcp/excel-mcp.log)
+Settings come only from command-line flags; the server reads no environment variables:
+  --allow-dir DIR      directory files may live in, repeatable (default: home dir)
+  --read-only[=BOOL]   disable and hide all write tools
+  --max-file-mb N      refuse files larger than this (default: 50)
+  --log-file PATH      operation log (default: ~/.excel-mcp/excel-mcp.log)
 """
 
 from __future__ import annotations
 
 import argparse
 import logging
-import os
 import sys
 from pathlib import Path
 
@@ -35,18 +32,17 @@ def parse_config(argv: list[str] | None = None) -> tuple[Config, Path]:
     parser.add_argument("--log-file")
     args = parser.parse_args(argv)
 
-    env_dirs = [d for d in os.environ.get("EXCEL_MCP_ALLOWED_DIRS", "").split(os.pathsep) if d.strip()]
-    dirs = [Path(d).expanduser() for d in (args.allow_dirs or env_dirs)] or [Path.home()]
+    dirs = [Path(d).expanduser() for d in args.allow_dirs or []] or [Path.home()]
     for d in dirs:
         if not d.expanduser().is_dir():
             parser.error(f"allowed directory does not exist: {d}")
 
     config = Config(
         allowed_dirs=dirs,
-        read_only=_truthy(args.read_only) or _truthy(os.environ.get("EXCEL_MCP_READ_ONLY")),
-        max_file_mb=args.max_file_mb or float(os.environ.get("EXCEL_MCP_MAX_FILE_MB") or 50),
+        read_only=_truthy(args.read_only),
+        max_file_mb=args.max_file_mb or 50.0,
     )
-    log_file = Path(args.log_file or os.environ.get("EXCEL_MCP_LOG_FILE") or Path.home() / ".excel-mcp" / "excel-mcp.log")
+    log_file = Path(args.log_file) if args.log_file else Path.home() / ".excel-mcp" / "excel-mcp.log"
     return config, log_file.expanduser()
 
 

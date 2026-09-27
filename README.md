@@ -70,10 +70,10 @@ Installing doesn't prompt for these. Any option you haven't set uses its default
 
 The server never connects to the network. Installing and starting it downloads the following, once:
 
-- **Python packages from PyPI** (`https://pypi.org/simple`, with files served from `files.pythonhosted.org`): the 30 packages pinned, with their hashes, in [`uv.lock`](uv.lock). These are `mcp` 2.2.0, `openpyxl` 3.1.5 and `xlrd` 2.0.2, plus their dependencies (for example `pydantic`, `anyio`, `starlette` and `et-xmlfile`; `pywin32` on Windows only). `--frozen` makes uv install exactly those versions and never re-resolve them, and uv checks each file against its hash in the lockfile.
+- **Python packages from PyPI** (`https://pypi.org/simple`, with files served from `files.pythonhosted.org`): the packages pinned, with their hashes, in [`uv.lock`](uv.lock), about 30 in all (32 on Windows; the exact set varies slightly by platform). They are `mcp` 2.2.0, `openpyxl` 3.1.5 and `xlrd` 2.0.2, plus their dependencies (for example `pydantic`, `anyio`, `starlette`, `cryptography` and `et-xmlfile`; `pywin32` on Windows only). `--frozen` makes uv install exactly those versions and never re-resolve them, and uv checks each file against its hash in the lockfile. No registry or index is configured anywhere in the plugin, so uv uses its default, PyPI.
 - **Python itself, only if needed.** If you don't have Python 3.11 or newer, uv downloads a standalone CPython build from GitHub ([astral-sh/python-build-standalone](https://github.com/astral-sh/python-build-standalone)).
 
-uv keeps the downloads in its cache (`~/.cache/uv` on macOS/Linux, `%LOCALAPPDATA%\uv\cache` on Windows) and installs them into a virtual environment in the plugin's data folder (`~/.claude/plugins/data/`). The plugin's own code runs straight from the plugin folder and isn't downloaded or built. Later launches reuse the installed environment and download nothing. Installing uv itself is a separate step you run yourself (see [Requirements](#requirements)).
+uv keeps the downloads in its cache (`~/.cache/uv` on macOS/Linux, `%LOCALAPPDATA%\uv\cache` on Windows) and installs them into a `.venv` folder inside the installed plugin's folder. The plugin's own code (`run_server.py` and `src/excel_mcp/`) runs straight from the plugin folder and isn't downloaded or built. Later launches reuse the installed environment and download nothing. Installing uv itself is a separate step you run yourself (see [Requirements](#requirements)).
 
 ### Update or remove
 
@@ -115,7 +115,7 @@ Open **Settings → Developer → Edit Config** in Claude Desktop and add:
 
 On macOS/Linux use the venv's `bin/python` instead. Point `command` at the Python interpreter where the package is installed, since a bare `"python"` may resolve to a different interpreter (or, on Windows, to the Microsoft Store stub). Restart Claude Desktop after saving.
 
-If you have uv, you can skip the venv: use `"command": "uv"` with `"args": ["run", "--frozen", "--project", "C:\\path\\to\\excel-mcp-server", "python", "-m", "excel_mcp.server", "--allow-dir", "C:\\Users\\you\\Documents"]` and `"env": {"PYTHONPATH": "C:\\path\\to\\excel-mcp-server\\src"}`.
+If you have uv, you can skip the venv: use `"command": "uv"` with `"args": ["run", "--frozen", "--project", "C:\\path\\to\\excel-mcp-server", "C:\\path\\to\\excel-mcp-server\\run_server.py", "--allow-dir", "C:\\Users\\you\\Documents"]`.
 
 ### Server options
 
@@ -178,6 +178,7 @@ Every data row comes back with a `_row` key holding its Excel row number, so Cla
 - **Size limit.** Files over `--max-file-mb` are refused before they are loaded.
 - **Read-only mode.** `--read-only` removes the write tools from the server entirely, so Claude never sees them.
 - **Local only.** stdio transport, and the server makes no network calls. The one-time dependency install is listed under [What gets downloaded](#what-gets-downloaded).
+- **No credentials.** The plugin needs no API keys, tokens or passwords, and reads none. Its three settings (allowed folder, read-only mode, max file size) are ordinary `userConfig` options, passed to the server as command-line arguments through `${user_config.KEY}`. The server also accepts the optional `EXCEL_MCP_*` environment variables listed under [Server options](#server-options), for running it outside the plugin. They hold only those same non-secret settings plus a log file path, and the plugin never sets them.
 - **Audit log.** Each operation is logged with its resolved path to stderr and to the log file.
 - **Safe saves.** Writes go to a temp file that then replaces the original, so an interrupted save can't leave a half-written workbook.
 
@@ -199,7 +200,7 @@ claude plugin validate . --strict       # check the marketplace manifest
 claude plugin validate .claude-plugin/plugin.json --strict   # check the plugin manifest
 ```
 
-Layout: `excel_ops.py` holds all spreadsheet logic with no MCP dependency, `tools.py` defines the MCP tools, and `server.py` is the CLI entry point. `.claude-plugin/` holds the plugin and marketplace manifests.
+Layout: `excel_ops.py` holds all spreadsheet logic with no MCP dependency, `tools.py` defines the MCP tools, and `server.py` is the CLI entry point. `run_server.py` at the root is the file the plugin runs; it imports the server from `src/`. `.claude-plugin/` holds the plugin manifest, the marketplace manifest and the icon.
 
 ### Evals
 

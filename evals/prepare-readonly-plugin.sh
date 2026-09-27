@@ -18,12 +18,8 @@ cat > "$dir/plugin.json" <<'JSON'
       "command": "uv",
       "args": [
         "run", "--frozen", "--project", "${CLAUDE_PLUGIN_ROOT}/../../..",
-        "python", "-m", "excel_mcp.server", "--read-only"
-      ],
-      "env": {
-        "PYTHONPATH": "${CLAUDE_PLUGIN_ROOT}/../../../src",
-        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv"
-      }
+        "${CLAUDE_PLUGIN_ROOT}/../../../run_server.py", "--read-only"
+      ]
     }
   }
 }

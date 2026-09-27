@@ -50,19 +50,13 @@
         "--frozen",
         "--project",
         "${CLAUDE_PLUGIN_ROOT}",
-        "python",
-        "-m",
-        "excel_mcp.server",
+        "${CLAUDE_PLUGIN_ROOT}/run_server.py",
         "--allow-dir",
         "${user_config.allowed_dir}",
         "--read-only=${user_config.read_only}",
         "--max-file-mb",
         "${user_config.max_file_mb}"
-      ],
-      "env": {
-        "PYTHONPATH": "${CLAUDE_PLUGIN_ROOT}/src",
-        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv"
-      }
+      ]
     }
   }
 }

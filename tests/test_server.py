@@ -35,3 +35,30 @@ def test_allowed_dirs_expand_home(tmp_path):
 def test_missing_allowed_dir_is_an_error(tmp_path):
     with pytest.raises(SystemExit):
         parse_config(["--allow-dir", str(tmp_path / "nope")])
+
+
+def test_plugin_launcher_starts_server(tmp_path):
+    """run_server.py (what the plugin runs) must start the server from src/ with no PYTHONPATH."""
+    import asyncio
+    import os
+    import sys
+
+    from mcp import Client, StdioServerParameters
+
+    root = Path(__file__).resolve().parent.parent
+    env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
+    params = StdioServerParameters(
+        command=sys.executable,
+        args=[str(root / "run_server.py"), "--allow-dir", str(tmp_path), "--read-only",
+              "--log-file", str(tmp_path / "test.log")],
+        env=env,
+        cwd=str(tmp_path),
+    )
+
+    async def go():
+        async with Client(params) as client:
+            return {t.name for t in (await client.list_tools()).tools}
+
+    assert asyncio.run(go()) == {
+        "read_spreadsheet", "get_sheet_data", "get_formulas", "search", "get_summary_stats", "apply_filter",
+    }

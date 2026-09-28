@@ -1,35 +1,27 @@
 """Generate the files the eval suite needs but the repository doesn't commit.
 
-Run once before `claude plugin eval` (and again after changing the generators), using the
-project's dev environment so openpyxl is available:
-
-    python evals/prepare.py
-
-It writes:
+See "Evals" in the README for when to run it. It writes:
 1. evals/fixtures/eval_workbook.xlsx, generated rather than committed so the plugin ships no
    binary files.
 2. The read-only copy of the plugin used by the security-read-only-mode case, derived from the
    real plugin.json and generated so the repository holds exactly one plugin.json.
 """
 
-import importlib.util
+import sys
 from pathlib import Path
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
+sys.path.insert(0, str(FIXTURES))
 
-
-def _load(name: str):
-    spec = importlib.util.spec_from_file_location(name, FIXTURES / f"{name}.py")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+import make_eval_workbook  # noqa: E402
+import make_readonly_plugin  # noqa: E402
 
 
 def main() -> None:
     workbook = FIXTURES / "eval_workbook.xlsx"
-    _load("make_eval_workbook").build(workbook)
+    make_eval_workbook.build(workbook)
     print(f"wrote {workbook}")
-    _load("make_readonly_plugin").main()
+    make_readonly_plugin.main()
 
 
 if __name__ == "__main__":

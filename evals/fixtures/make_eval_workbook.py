@@ -1,4 +1,4 @@
-"""Regenerate evals/fixtures/eval_workbook.xlsx: python evals/fixtures/make_eval_workbook.py
+"""Build evals/fixtures/eval_workbook.xlsx. evals/prepare.py calls build(); see "Evals" in the README.
 
 Sheets:
   Orders     20 orders: dates, text, integers, decimals, a formula column, and deliberate blanks

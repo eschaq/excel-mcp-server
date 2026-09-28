@@ -36,6 +36,7 @@ READ_EXTENSIONS = {".xlsx", ".xlsm", ".xls", ".csv"}
 WRITE_EXTENSIONS = {".xlsx", ".xlsm"}
 MAX_ROWS_PER_CALL = 5000
 EXCEL_MAX_ROW, EXCEL_MAX_COL = 1_048_576, 16_384
+CELL_NOISE = re.compile(r"[^A-Za-z0-9]")  # absolute-reference markers and stray spaces
 ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
 ISO_DATETIME = re.compile(r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?")
 INVALID_SHEET_CHARS = re.compile(r"[\[\]:*?/\\]")
@@ -147,9 +148,13 @@ def _as_datetime(v: dt.date) -> dt.datetime:
 
 
 def _parse_cell(cell: str) -> tuple[int, int]:
-    """'B3' / '$B$3' -> (row, col), raising ExcelOpsError if it isn't a valid address."""
+    """'B3' -> (row, col), raising ExcelOpsError if it isn't a valid address.
+
+    Absolute references (B3 with dollar signs before the column and row) are accepted too:
+    everything except letters and digits is dropped before parsing.
+    """
     try:
-        letters, row = coordinate_from_string(cell.replace("$", "").upper())
+        letters, row = coordinate_from_string(CELL_NOISE.sub("", cell).upper())
         col = column_index_from_string(letters)
     except (CellCoordinatesException, ValueError, AttributeError):
         raise ExcelOpsError(f"Invalid cell reference '{cell}' (expected e.g. 'B3')") from None

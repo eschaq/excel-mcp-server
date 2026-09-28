@@ -35,20 +35,20 @@ def test_missing_allowed_dir_is_an_error(tmp_path):
 
 
 def test_plugin_launcher_starts_server(tmp_path):
-    """run_server.py (what the plugin runs) must start the server from src/ with no PYTHONPATH."""
+    """run_server.py (what the plugin runs) must start the server from src/ with no PYTHONPATH.
+
+    The MCP client starts it with its own minimal default environment, which has no PYTHONPATH.
+    """
     import asyncio
-    import os
     import sys
 
     from mcp import Client, StdioServerParameters
 
     root = Path(__file__).resolve().parent.parent
-    env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
     params = StdioServerParameters(
         command=sys.executable,
         args=[str(root / "run_server.py"), "--allow-dir", str(tmp_path), "--read-only",
               "--log-file", str(tmp_path / "test.log")],
-        env=env,
         cwd=str(tmp_path),
     )
 

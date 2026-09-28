@@ -1,4 +1,4 @@
-"""Write the eval-only read-only copy of the plugin. Called by evals/prepare.sh.
+"""Write the eval-only read-only copy of the plugin. Called by evals/prepare.py.
 
 The copy is derived from the real .claude-plugin/plugin.json, so it always starts the server the
 same way: only its name changes, its paths point back at the repository root, and the user

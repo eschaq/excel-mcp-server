@@ -193,7 +193,7 @@ Layout: `excel_ops.py` holds all spreadsheet logic with no MCP dependency, `tool
 `evals/` holds 20 [`claude plugin eval`](https://code.claude.com/docs/en/plugin-evals) cases: every tool, edge cases (an empty sheet, a missing file, text/number/date writes), and security checks (a path outside the allowed folder, a file over 50 MB, read-only mode, a non-spreadsheet file). They run real Claude sessions against the real server, so they cost money: about $9 for the full suite at 3 runs per case. They need `uv` and bash on your PATH.
 
 ```bash
-bash evals/prepare.sh    # once, with the dev environment active: generates the eval workbook and the read-only test plugin (gitignored)
+python evals/prepare.py    # once, with the dev environment active: generates the eval workbook and the read-only test plugin (gitignored)
 claude plugin eval . --scaffold --allow-real-servers \
   --allow-tools "mcp__plugin_dws-spreadsheet_excel__*" "mcp__plugin_dws-spreadsheet-readonly_excel__*" \
   --ablation none --judge-model sonnet --max-cost-usd 15
@@ -202,7 +202,7 @@ claude plugin eval . --scaffold --allow-real-servers \
 - `--scaffold` runs each case's `setup.sh`, which copies `evals/fixtures/eval_workbook.xlsx` (or generates a test file) into the run's workspace.
 - `--allow-real-servers` starts the real server instead of mocks.
 - The read-only case loads a test copy of the plugin whose server runs with `--read-only`.
-- `evals/prepare.sh` generates both the eval workbook (from `evals/fixtures/make_eval_workbook.py`) and that test plugin. Both are gitignored, so the repository ships no binary files and holds only one `plugin.json`.
+- `evals/prepare.py` generates both the eval workbook (from `evals/fixtures/make_eval_workbook.py`) and that test plugin. Both are gitignored, so the repository ships no binary files and holds only one `plugin.json`.
 
 ## License
 

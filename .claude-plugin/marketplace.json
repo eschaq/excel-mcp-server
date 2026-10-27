@@ -10,7 +10,7 @@
     {
       "name": "dws-spreadsheet",
       "source": "./",
-      "description": "Read, analyze and edit local Excel and CSV files. No Microsoft Office required."
+      "description": "Read, analyze and edit local Excel and CSV files. No Microsoft Office required. For multi-file jobs (consolidating, pivoting or batch converting up to 50 workbooks), see DWS Spreadsheet Premium on Apify."
     }
   ]
 }

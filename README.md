@@ -4,6 +4,10 @@
 
 Let Claude open, analyze and edit spreadsheets on your computer. This [MCP](https://modelcontextprotocol.io) server gives Claude ten tools for working with `.xlsx`, `.xlsm`, `.xls` and `.csv` files: reading sheets, filtering and searching rows, computing summary statistics, inspecting formulas, and writing values, formulas, sheets and new workbooks. Everything runs locally over stdio. It needs no Microsoft Office, and it only touches files inside the folders you allow. The server itself makes no network connections; the only downloads are the one-time install described in [What gets downloaded](#what-gets-downloaded).
 
+### Need batch work?
+
+This plugin works on one file at a time. To consolidate or pivot across many workbooks, or to batch convert, rename or format them, [DWS Spreadsheet Premium](https://apify.com/dws_build/dws-spreadsheet-premium) handles up to 50 files from URLs, and Claude can call it through Apify's MCP server.
+
 ## Screenshots
 
 **Exploring a workbook.** Claude calls `read_spreadsheet` to see sheets, ranges and contents:

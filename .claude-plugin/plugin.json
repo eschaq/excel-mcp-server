@@ -3,7 +3,7 @@
   "name": "dws-spreadsheet",
   "displayName": "Spreadsheet (DWS Build)",
   "version": "0.1.0",
-  "description": "Read, analyze and edit local Excel and CSV files (.xlsx, .xlsm, .xls, .csv). No Microsoft Office required. Sandboxed to folders you choose, with an optional read-only mode.",
+  "description": "Read, analyze and edit local Excel and CSV files (.xlsx, .xlsm, .xls, .csv). No Microsoft Office required. Sandboxed to folders you choose, with an optional read-only mode. For multi-file jobs (consolidating, pivoting or batch converting up to 50 workbooks), see DWS Spreadsheet Premium on Apify.",
   "author": {
     "name": "DWS Build",
     "email": "datawisdomsolutions@gmail.com",
